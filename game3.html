@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Stylish Tic Tac Toe</title>
+  <title>Creative Tic Tac Toe</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .bg-x { background-color: #FFD3B6; } 
@@ -11,6 +11,14 @@
     .bg-hover:hover { background-color: #b4ece7; } 
     .transition { transition: background-color 0.3s ease, transform 0.3s ease; }
     .scale-hover:hover { transform: scale(1.05); }
+    
+    .cell {
+      transition: transform 0.3s, background-color 0.3s;
+    }
+    .cell:hover {
+      transform: scale(1.1);
+      background-color: rgba(255, 255, 255, 0.8);
+    }
 
     #modal {
       display: none;
@@ -34,8 +42,6 @@
       from { opacity: 0; transform: translateY(-20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
-    /* New fade-in animation for moves */
     .fade-in {
       opacity: 0;
       animation: fadeInAnimation 0.5s forwards;
@@ -49,12 +55,26 @@
 </head>
 <body class="bg-gradient-to-br from-green-400 to-teal-500 flex items-center justify-center min-h-screen">
   
-  <div id="game" class="text-center space-y-6 bg-white/90 p-8 rounded-lg shadow-2xl w-80 max-w-full">
+  <div id="startScreen" class="text-center space-y-6 bg-white/90 p-8 rounded-lg shadow-2xl w-80 max-w-full">
     <h1 class="text-4xl font-bold text-gray-800 mb-4">Tic-Tac-Toe</h1>
-    <div class="flex justify-center">
-      <button onclick="startGame('X')" class="px-4 py-2 mx-2 bg-teal-500 text-white rounded-lg">Play as X</button>
-      <button onclick="startGame('O')" class="px-4 py-2 mx-2 bg-teal-500 text-white rounded-lg">Play as O</button>
+    <p class="text-gray-700 mb-4">Choose a mode to start the game</p>
+    <div class="flex justify-center space-x-4">
+      <button onclick="startTwoPlayerGame()" class="px-4 py-2 bg-teal-500 text-white rounded-lg shadow-lg transition-all duration-300 hover:bg-teal-600">Friends</button>
+      <button onclick="showChoiceScreen()" class="px-4 py-2 bg-teal-500 text-white rounded-lg shadow-lg transition-all duration-300 hover:bg-teal-600">Robot</button>
     </div>
+  </div>
+
+  <div id="choiceScreen" class="hidden text-center space-y-6 bg-white/90 p-8 rounded-lg shadow-2xl w-80 max-w-full">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Choose Your Side</h2>
+    <div class="flex justify-center">
+      <button onclick="startGame('X')" class="px-4 py-2 mx-2 bg-teal-500 text-white rounded-lg shadow-lg transition-all duration-300 hover:bg-teal-600">Play as X</button>
+      <button onclick="startGame('O')" class="px-4 py-2 mx-2 bg-teal-500 text-white rounded-lg shadow-lg transition-all duration-300 hover:bg-teal-600">Play as O</button>
+    </div>
+    <button onclick="goBackToStart()" class="mt-4 px-4 py-2 bg-gray-400 text-white rounded-lg">Back</button>
+  </div>
+
+  <div id="game" class="hidden text-center space-y-6 bg-white/90 p-8 rounded-lg shadow-2xl w-80 max-w-full">
+    <h1 class="text-4xl font-bold text-gray-800 mb-4">Tic-Tac-Toe</h1>
     <div class="grid grid-cols-3 gap-4">
       <button class="cell bg-white w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg transition bg-hover scale-hover" onclick="makeMove(this, 0)"></button>
       <button class="cell bg-white w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg transition bg-hover scale-hover" onclick="makeMove(this, 1)"></button>
@@ -69,13 +89,14 @@
     <div class="text-lg text-gray-700 mt-4">
       <span id="status">Choose your side to start!</span>
     </div>
-    <button onclick="resetGame()" class="mt-4 px-6 py-2 bg-gradient-to-r from-teal-500 to-green-500 text-white rounded-lg shadow-lg hover:shadow-xl focus:outline-none">Reset Game</button>
+    <button onclick="resetGame()" class="mt-4 px-6 py-2 bg-gradient-to-r from-teal-500 to-green-500 text-white rounded-lg shadow-lg hover:shadow-xl focus:outline-none transition-all duration-300">Reset Game</button>
+    <button onclick="goBackToStart()" class="mt-4 px-4 py-2 bg-gray-400 text-white rounded-lg">Back</button>
   </div>
 
   <div id="modal" class="flex">
     <div id="modalContent">
-      <h2 class="text-2xl font-bold mb-4">You were fooled! 😆</h2>
-      <button onclick="closeModal()" class="px-4 py-2 bg-teal-500 text-white rounded-lg shadow-md hover:bg-teal-600">Close</button>
+      <h2 class="text-2xl font-bold mb-4">Its my rules! 😆</h2>
+      <button onclick="closeModal()" class="px-4 py-2 bg-teal-500 text-white rounded-lg shadow-md hover:bg-teal-600 transition-all duration-300">Close</button>
     </div>
   </div>
 
@@ -100,108 +121,85 @@
       [2, 4, 6]
     ];
 
-    function startGame(player) {
-      currentPlayer = player;
-      aiPlayer = (player === 'X') ? 'O' : 'X';
+    function showChoiceScreen() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("choiceScreen").classList.remove("hidden");
+    }
+
+    function startTwoPlayerGame() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("game").classList.remove("hidden");
       gameActive = true;
-      gameState = ["", "", "", "", "", "", "", "", ""];
-      fooledMove = false;
-      cells.forEach(cell => {
-        cell.innerText = "";
-        cell.classList.remove("bg-x", "bg-o");
-        cell.classList.add("bg-white");
-      });
+      currentPlayer = "X";
+      aiPlayer = "";
       statusDisplay.innerText = `Player ${currentPlayer}'s turn`;
     }
 
-    function handleResultValidation() {
-      let roundWon = false;
-      for (let i = 0; i < winningConditions.length; i++) {
-        const [a, b, c] = winningConditions[i];
-        if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
-          roundWon = true;
-          break;
-        }
-      }
-
-      if (roundWon) {
-        statusDisplay.innerText = fooledMove ? `Player ${currentPlayer} lost! You failed!` : `Player ${currentPlayer} has won!`;
-        gameActive = false;
-        return;
-      }
-
-      if (!gameState.includes("")) {
-        statusDisplay.innerText = "It's a Draw!";
-        gameActive = false;
-        return;
-      }
-
-      currentPlayer = (currentPlayer === "X") ? "O" : "X";
+    function startGame(player) {
+      document.getElementById("choiceScreen").classList.add("hidden");
+      document.getElementById("game").classList.remove("hidden");
+      currentPlayer = player;
+      aiPlayer = player === "X" ? "O" : "X";
+      gameActive = true;
       statusDisplay.innerText = `Player ${currentPlayer}'s turn`;
     }
 
     function makeMove(cell, index) {
-      if (gameState[index] !== "" || !gameActive) return;
-
-      // Player's move
+      if (gameState[index] !== "" || !gameActive) {
+        return;
+      }
       gameState[index] = currentPlayer;
       cell.innerText = currentPlayer;
+      cell.classList.add(currentPlayer === "X" ? "bg-x" : "bg-o");
+      checkResult();
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+      statusDisplay.innerText = gameActive ? `Player ${currentPlayer}'s turn` : "";
+    }
 
-      cell.classList.remove("bg-white", "bg-x", "bg-o");
-      cell.classList.add(currentPlayer === "X" ? "bg-x" : "bg-o", "fade-in");
-
-      // Remove fade-in class after animation completes
-      cell.addEventListener('animationend', () => {
-        cell.classList.remove("fade-in");
-      });
-
-      handleResultValidation();
-
-      if (gameActive && currentPlayer === 'X') {
-        setTimeout(aiMove, 500); // AI makes move after a short delay
+    function checkResult() {
+      let roundWon = false;
+      for (let i = 0; i < winningConditions.length; i++) {
+        const [a, b, c] = winningConditions[i];
+        if (gameState[a] === "" || gameState[b] === "" || gameState[c] === "") {
+          continue;
+        }
+        if (gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+          roundWon = true;
+          break;
+        }
+      }
+      if (roundWon) {
+        statusDisplay.innerText = `Player ${currentPlayer} has won! 🎉`;
+        gameActive = false;
+        return;
+      }
+      if (!gameState.includes("")) {
+        statusDisplay.innerText = "It's a draw! 😕";
+        gameActive = false;
+        return;
       }
     }
 
-    function aiMove() {
-      const availableMoves = gameState.map((cell, index) => (cell === "") ? index : null).filter(index => index !== null);
-      if (availableMoves.length === 0) return;
-
-      // AI logic to pick a random available move
-      const randomIndex = availableMoves[Math.floor(Math.random() * availableMoves.length)];
-      const cell = cells[randomIndex];
-
-      // Simulate AI making a move
-      gameState[randomIndex] = aiPlayer;
-      cell.innerText = aiPlayer;
-
-      cell.classList.remove("bg-white", "bg-x", "bg-o");
-      cell.classList.add(aiPlayer === "X" ? "bg-x" : "bg-o", "fade-in");
-
-      // Remove fade-in class after animation completes
-      cell.addEventListener('animationend', () => {
-        cell.classList.remove("fade-in");
-      });
-
-      handleResultValidation();
-    }
-
     function resetGame() {
-      gameActive = false;
-      statusDisplay.innerText = "Choose your side to start!";
+      gameActive = true;
+      currentPlayer = 'X';
+      gameState = ["", "", "", "", "", "", "", "", ""];
+      statusDisplay.innerText = `Player ${currentPlayer}'s turn`;
       cells.forEach(cell => {
         cell.innerText = "";
         cell.classList.remove("bg-x", "bg-o");
-        cell.classList.add("bg-white");
       });
     }
 
-    function showModal() {
-      modal.style.display = "flex";
+    function closeModal() {
+      modal.style.display = 'none';
     }
 
-    function closeModal() {
-      modal.style.display = "none";
+    function goBackToStart() {
       resetGame();
+      document.getElementById("game").classList.add("hidden");
+      document.getElementById("choiceScreen").classList.add("hidden");
+      document.getElementById("startScreen").classList.remove("hidden");
     }
   </script>
 </body>

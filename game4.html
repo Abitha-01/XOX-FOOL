@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Creative Tic Tac Toe</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: url('https://www.transparenttextures.com/patterns/asfalt-dark.png');
+    }
+    .cell {
+      background-color: #ffffff;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+    .cell:hover {
+      transform: scale(1.05);
+      background-color: #f9f9f9;
+    }
+    .x { color: #FF6B6B; }
+    .o { color: #4ECDC4; }
+    .winner {
+      animation: pulse 0.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+  <div id="startScreen" class="text-center space-y-6 bg-white/90 p-8 rounded-xl shadow-lg w-80 max-w-full">
+    <h1 class="text-4xl font-bold text-gray-800 mb-4">Tic Tac Toe</h1>
+    <p class="text-gray-700 mb-4">Choose a mode to start the game</p>
+    <div class="flex justify-center space-x-4">
+      <button onclick="startTwoPlayerGame()" class="px-6 py-2 bg-teal-500 text-white rounded-lg shadow-lg hover:bg-teal-600 transition">Friends</button>
+      <button onclick="showChoiceScreen()" class="px-6 py-2 bg-teal-500 text-white rounded-lg shadow-lg hover:bg-teal-600 transition">Robot</button>
+    </div>
+  </div>
+
+  <div id="choiceScreen" class="hidden text-center space-y-6 bg-white/90 p-8 rounded-xl shadow-lg w-80 max-w-full">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Choose Your Side</h2>
+    <div class="flex justify-center">
+      <button onclick="startGame('X')" class="px-6 py-2 mx-2 bg-teal-500 text-white rounded-lg shadow-lg hover:bg-teal-600 transition">Play as X</button>
+      <button onclick="startGame('O')" class="px-6 py-2 mx-2 bg-teal-500 text-white rounded-lg shadow-lg hover:bg-teal-600 transition">Play as O</button>
+    </div>
+    <button onclick="goBackToStart()" class="mt-4 px-6 py-2 bg-gray-400 text-white rounded-lg shadow-lg hover:bg-gray-500 transition">Back</button>
+  </div>
+
+  <div id="game" class="hidden text-center space-y-6 bg-white/90 p-8 rounded-xl shadow-lg w-80 max-w-full">
+    <h1 class="text-4xl font-bold text-gray-800 mb-4">Tic Tac Toe</h1>
+    <div class="grid grid-cols-3 gap-4">
+      <button class="cell w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg" onclick="makeMove(this, 0)"></button>
+      <button class="cell w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg" onclick="makeMove(this, 1)"></button>
+      <button class="cell w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg" onclick="makeMove(this, 2)"></button>
+      <button class="cell w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg" onclick="makeMove(this, 3)"></button>
+      <button class="cell w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg" onclick="makeMove(this, 4)"></button>
+      <button class="cell w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg" onclick="makeMove(this, 5)"></button>
+      <button class="cell w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg" onclick="makeMove(this, 6)"></button>
+      <button class="cell w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg" onclick="makeMove(this, 7)"></button>
+      <button class="cell w-20 h-20 text-4xl font-semibold flex items-center justify-center border-2 border-gray-200 rounded-lg" onclick="makeMove(this, 8)"></button>
+    </div>
+    <div class="text-lg text-gray-700 mt-4">
+      <span id="status">Choose your side to start!</span>
+    </div>
+    <button onclick="resetGame()" class="mt-4 px-6 py-2 bg-teal-500 text-white rounded-lg shadow-lg hover:bg-teal-600 transition">Reset Game</button>
+    <button onclick="goBackToStart()" class="mt-4 px-4 py-2 bg-gray-400 text-white rounded-lg shadow-lg hover:bg-gray-500 transition">Back</button>
+  </div>
+
+  <script>
+    const cells = document.querySelectorAll('.cell');
+    const statusDisplay = document.getElementById('status');
+    let gameActive = false;
+    let currentPlayer = '';
+    let aiPlayer = '';
+    let gameState = ["", "", "", "", "", "", "", "", ""];
+    const winningConditions = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ];
+
+    function showChoiceScreen() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("choiceScreen").classList.remove("hidden");
+    }
+
+    function startTwoPlayerGame() {
+      document.getElementById("startScreen").classList.add("hidden");
+      document.getElementById("game").classList.remove("hidden");
+      gameActive = true;
+      currentPlayer = "X";
+      aiPlayer = "";
+      statusDisplay.innerText = `Player ${currentPlayer}'s turn`;
+    }
+
+    function startGame(player) {
+      document.getElementById("choiceScreen").classList.add("hidden");
+      document.getElementById("game").classList.remove("hidden");
+      currentPlayer = player;
+      aiPlayer = (player === 'X') ? 'O' : 'X';
+      gameActive = true;
+      gameState = ["", "", "", "", "", "", "", "", ""];
+      cells.forEach(cell => {
+        cell.innerText = "";
+        cell.classList.remove("x", "o");
+      });
+      statusDisplay.innerText = `Player ${currentPlayer}'s turn`;
+      if (aiPlayer === 'O') {
+        aiMove();
+      }
+    }
+
+    function makeMove(cell, index) {
+      if (cell.innerText !== "" || !gameActive) {
+        return;
+      }
+      cell.innerText = currentPlayer === 'X' ? '❌' : '⭕';
+      cell.classList.add(currentPlayer === 'X' ? 'x' : 'o');
+      gameState[index] = currentPlayer;
+      checkResult();
+      if (gameActive && aiPlayer === 'O') {
+        aiMove();
+      }
+    }
+
+    function aiMove() {
+      if (gameActive) {
+        setTimeout(() => {
+          const availableMoves = gameState.map((val, idx) => (val === "") ? idx : null).filter(val => val !== null);
+          const randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
+          if (randomMove !== undefined) {
+            cells[randomMove].innerText = aiPlayer === 'X' ? '❌' : '⭕';
+            cells[randomMove].classList.add(aiPlayer === 'X' ? 'x' : 'o');
+            gameState[randomMove] = aiPlayer;
+            checkResult();
+          }
+        }, 500);
+      }
+    }
+
+    function checkResult() {
+      let roundWon = false;
+      for (let i = 0; i < winningConditions.length; i++) {
+        const [a, b, c] = winningConditions[i];
+        if (gameState[a] === "" || gameState[b] === "" || gameState[c] === "") {
+          continue;
+        }
+        if (gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+          roundWon = true;
+          break;
+        }
+      }
+      if (roundWon) {
+        cells.forEach(cell => {
+          cell.classList.add('winner');
+        });
+        statusDisplay.innerText = `Player ${currentPlayer} has won! 🎉`;
+        gameActive = false;
+        return;
+      }
+      if (!gameState.includes("")) {
+        statusDisplay.innerText = "It's a draw! 🤝";
+        gameActive = false;
+        return;
+      }
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      statusDisplay.innerText = `Player ${currentPlayer}'s turn`;
+    }
+
+    function resetGame() {
+      gameState = ["", "", "", "", "", "", "", "", ""];
+      currentPlayer = '';
+      cells.forEach(cell => {
+        cell.innerText = "";
+        cell.classList.remove("x", "o");
+        cell.classList.remove('winner');
+      });
+      document.getElementById("game").classList.add("hidden");
+      document.getElementById("startScreen").classList.remove("hidden");
+      statusDisplay.innerText = "Choose your side to start!";
+    }
+
+    function goBackToStart() {
+      document.getElementById("game").classList.add("hidden");
+      document.getElementById("choiceScreen").classList.add("hidden");
+      document.getElementById("startScreen").classList.remove("hidden");
+    }
+  </script>
+</body>
+</html>
